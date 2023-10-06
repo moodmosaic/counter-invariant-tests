@@ -1,18 +1,11 @@
-import {
-  CounterCommand,
-  Principal,
-  Real,
-  Stub,
-} from "./CounterCommandModel.ts";
-
-import { Tx } from "https://deno.land/x/clarinet@v1.7.1/index.ts";
+import { expect } from "vitest";
+import { CounterCommand, Principal, Real, Stub } from "./CounterCommandModel.ts";
+import { Cl, ClarityType } from "@stacks/transactions";
 
 export class CounterDecrementErrorCommand implements CounterCommand {
   readonly sender: Principal;
 
-  constructor(
-    sender: Principal,
-  ) {
+  constructor(sender: Principal) {
     this.sender = sender;
   }
 
@@ -21,24 +14,17 @@ export class CounterDecrementErrorCommand implements CounterCommand {
   }
 
   run(_: Stub, real: Real): void {
-    const block = real.chain.mineBlock([
-      Tx.contractCall(
-        "counter",
-        "decrement",
-        [],
-        this.sender.value,
-      ),
-    ]);
-    block
-      .receipts[0]
-      .result
-      .expectErr()
-      .expectUint(401);
+    const { result } = real.simnet.callPublicFn("counter", "decrement", [], this.sender.value);
+    console.log("-".repeat(20));
+    console.log("result", result);
+    expect(result).toHaveClarityType(ClarityType.ResponseErr);
+    expect(result).toBeErr(Cl.uint(401));
 
     console.log(
-      `Ӿ tx-sender ${this.sender.value.padStart(41, " ")}  ✓ ${
-        "decrement".padStart(11, " ")
-      } ERR_COUNTER_MUST_BE_POSITIVE`,
+      `Ӿ tx-sender ${this.sender.value.padStart(41, " ")}  ✓ ${"decrement".padStart(
+        11,
+        " "
+      )} ERR_COUNTER_MUST_BE_POSITIVE`
     );
   }
 
