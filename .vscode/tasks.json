@@ -6,12 +6,6 @@
       "group": "test",
       "type": "shell",
       "command": "clarinet check"
-    },
-    {
-      "label": "test contracts",
-      "group": "test",
-      "type": "shell",
-      "command": "clarinet test"
     }
   ]
 }
