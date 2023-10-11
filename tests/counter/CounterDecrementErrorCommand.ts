@@ -15,8 +15,6 @@ export class CounterDecrementErrorCommand implements CounterCommand {
 
   run(_: Stub, real: Real): void {
     const { result } = real.simnet.callPublicFn("counter", "decrement", [], this.sender.value);
-    console.log("-".repeat(20));
-    console.log("result", result);
     expect(result).toHaveClarityType(ClarityType.ResponseErr);
     expect(result).toBeErr(Cl.uint(401));
 

@@ -8,48 +8,50 @@ import { counterCommands } from "./CounterCommands";
 const accounts = simnet.getAccounts();
 const address1 = accounts.get("wallet_1")!;
 
-it("ensures that <get-counter> send the counter value", () => {
-  const { result } = simnet.callReadOnlyFn("counter", "get-counter", [], address1);
+describe("manual tests", () => {
+  it("ensures that <get-counter> send the counter value", () => {
+    const { result } = simnet.callReadOnlyFn("counter", "get-counter", [], address1);
 
-  expect(result).toBeUint(0);
-});
+    expect(result).toBeUint(0);
+  });
 
-it("ensures that <increment> adds 1", () => {
-  const { result } = simnet.callPublicFn("counter", "increment", [], address1);
-  expect(result).toBeOk(Cl.bool(true));
+  it("ensures that <increment> adds 1", () => {
+    const { result } = simnet.callPublicFn("counter", "increment", [], address1);
+    expect(result).toBeOk(Cl.bool(true));
 
-  const counter = simnet.getDataVar("counter", "counter");
-  expect(counter).toBeUint(1);
-});
+    const counter = simnet.getDataVar("counter", "counter");
+    expect(counter).toBeUint(1);
+  });
 
-it("ensures that <decrement> removes 1", () => {
-  simnet.callPublicFn("counter", "increment", [], address1);
-  const { result } = simnet.callPublicFn("counter", "decrement", [], address1);
-  expect(result).toBeOk(Cl.bool(true));
+  it("ensures that <decrement> removes 1", () => {
+    simnet.callPublicFn("counter", "increment", [], address1);
+    const { result } = simnet.callPublicFn("counter", "decrement", [], address1);
+    expect(result).toBeOk(Cl.bool(true));
 
-  const counter = simnet.getDataVar("counter", "counter");
-  expect(counter).toBeUint(0);
-});
+    const counter = simnet.getDataVar("counter", "counter");
+    expect(counter).toBeUint(0);
+  });
 
-it("ensures that <decrement> throws an error if result is lower than 0", () => {
-  const block = simnet.mineBlock([tx.callPublicFn("counter", "decrement", [], address1)]);
+  it("ensures that <decrement> throws an error if result is lower than 0", () => {
+    const block = simnet.mineBlock([tx.callPublicFn("counter", "decrement", [], address1)]);
 
-  expect(block[0].result).toBeErr(Cl.uint(401));
-});
+    expect(block[0].result).toBeErr(Cl.uint(401));
+  });
 
-it("ensures that <add> adds up the right amout", () => {
-  const { result } = simnet.callPublicFn("counter", "add", [Cl.uint(3)], address1);
+  it("ensures that <add> adds up the right amout", () => {
+    const { result } = simnet.callPublicFn("counter", "add", [Cl.uint(3)], address1);
 
-  expect(result).toBeOk(Cl.bool(true));
+    expect(result).toBeOk(Cl.bool(true));
 
-  const counter = simnet.getDataVar("counter", "counter");
-  expect(counter).toBeUint(3);
-});
+    const counter = simnet.getDataVar("counter", "counter");
+    expect(counter).toBeUint(3);
+  });
 
-it("ensures that <add> throws an error if n is too low", () => {
-  const block = simnet.mineBlock([tx.callPublicFn("counter", "add", [Cl.uint(1)], address1)]);
+  it("ensures that <add> throws an error if n is too low", () => {
+    const block = simnet.mineBlock([tx.callPublicFn("counter", "add", [Cl.uint(1)], address1)]);
 
-  expect(block[0].result).toBeErr(Cl.uint(402));
+    expect(block[0].result).toBeErr(Cl.uint(402));
+  });
 });
 
 // // https://github.com/dubzzz/fast-check/discussions/3026#discussioncomment-3875818
