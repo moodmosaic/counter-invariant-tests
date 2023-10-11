@@ -43,25 +43,25 @@ export function counterCommands() {
       .map((r: { sender: string }) => new CounterDecrementCommand(new Principal(r.sender))),
 
     // CounterDecrementErrorCommand
-    // fc
-    //   .record({
-    //     sender: fc.constantFrom(...getAccounts()),
-    //   })
-    //   .map((r: { sender: string }) => new CounterDecrementErrorCommand(new Principal(r.sender))),
+    fc
+      .record({
+        sender: fc.constantFrom(...getAccounts()),
+      })
+      .map((r: { sender: string }) => new CounterDecrementErrorCommand(new Principal(r.sender))),
 
-    // // CounterGetCommand
-    // fc
-    //   .record({
-    //     sender: fc.constantFrom(...getAccounts()),
-    //   })
-    //   .map((r: { sender: string }) => new CounterGetCommand(new Principal(r.sender))),
+    // CounterGetCommand
+    fc
+      .record({
+        sender: fc.constantFrom(...getAccounts()),
+      })
+      .map((r: { sender: string }) => new CounterGetCommand(new Principal(r.sender))),
 
-    // // CounterIncrementCommand
-    // fc
-    //   .record({
-    //     sender: fc.constantFrom(...getAccounts()),
-    //   })
-    //   .map((r: { sender: string }) => new CounterIncrementCommand(new Principal(r.sender))),
+    // CounterIncrementCommand
+    fc
+      .record({
+        sender: fc.constantFrom(...getAccounts()),
+      })
+      .map((r: { sender: string }) => new CounterIncrementCommand(new Principal(r.sender))),
   ];
   // On size: https://github.com/dubzzz/fast-check/discussions/2978
   return fc.commands(allCommands, { size: "+1" });

@@ -1,4 +1,4 @@
-import { tx } from "@hirosystems/clarinet-sdk";
+import { initSimnet, tx } from "@hirosystems/clarinet-sdk";
 import { Cl } from "@stacks/transactions";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
@@ -55,16 +55,20 @@ it("ensures that <add> throws an error if n is too low", () => {
 // // https://github.com/dubzzz/fast-check/discussions/3026#discussioncomment-3875818
 
 describe("invariant tests", () => {
-  it("runs invariant test", () => {
-    const initialState = () => ({
-      model: { counter: 0 },
-      real: { simnet },
-    });
+  it("runs invariant test", async () => {
+    const initialChain = { simnet: await initSimnet() };
+    const initialModel = {
+      counter: 0,
+    };
 
     fc.assert(
       // @ts-ignore
       fc.property(counterCommands(), (cmds: []) => {
-        fc.modelRun(initialState, cmds);
+        const state = () => ({
+          model: initialModel,
+          real: initialChain,
+        });
+        fc.modelRun(state, cmds);
       }),
       { numRuns: 100, verbose: true }
     );
