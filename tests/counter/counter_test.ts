@@ -4,7 +4,7 @@ import {
   Clarinet,
   Tx,
   types,
-} from "https://deno.land/x/clarinet@v1.7.1/index.ts";
+} from "https://deno.land/x/clarinet@v1.8.0/index.ts";
 
 // https://github.com/hirosystems/clarity-starter/blob/aa4a7e31a73ab8bb23a813d92598d5eba8876d1c/tests/counter_test.ts
 
@@ -87,28 +87,37 @@ Clarinet.test({
   },
 });
 
-import fc from "https://cdn.skypack.dev/fast-check@3.12.0";
-import { CounterCommands } from "./CounterCommands.ts";
+import fc from "https://cdn.skypack.dev/fast-check@3.19.0";
 
-// See also:
-// https://github.com/dubzzz/fast-check/discussions/3026#discussioncomment-3875818
+import { CounterAdd } from "./CounterAdd.ts";
+import { CounterAddError } from "./CounterAddError.ts";
+import { CounterDecrement } from "./CounterDecrement.ts";
+import { CounterDecrementError } from "./CounterDecrementError.ts";
+import { CounterGet } from "./CounterGet.ts";
+import { CounterIncrement } from "./CounterIncrement.ts";
 
 Clarinet.test({
   name: "invariant tests",
   fn(chain: Chain, accounts: Map<string, Account>) {
-    const initialChain = { chain: chain };
-    const initialModel = {
+    const invariants = [
+      CounterAdd(accounts),
+      CounterAddError(accounts),
+      CounterDecrement(accounts),
+      CounterDecrementError(accounts),
+      CounterGet(accounts),
+      CounterIncrement(accounts),
+    ];
+
+    const model = {
       counter: 0,
     };
+
     fc.assert(
       fc.property(
-        CounterCommands(accounts),
+        fc.commands(invariants, { size: "+1" }),
         (cmds: []) => {
-          const initialState = () => ({
-            model: initialModel,
-            real : initialChain,
-          });
-          fc.modelRun(initialState, cmds);
+          const state = () => ({ model: model, real: { chain } });
+          fc.modelRun(state, cmds);
         },
       ),
       { numRuns: 100, verbose: true },
