@@ -5,10 +5,11 @@ authors = []
 telemetry = false
 cache_dir = '.\.cache'
 
-[contracts.counter]
-path = 'contracts/counter.clar'
+[contracts.counter_flow_test]
+path = 'tests/clarunit/counter_flow_test.clar'
 clarity_version = 2
 epoch = 2.1
+
 [repl.analysis]
 passes = ['check_checker']
 
