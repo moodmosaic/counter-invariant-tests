@@ -1,0 +1,24 @@
+[project]
+name = 'madfuzz-clarity'
+description = ''
+authors = []
+telemetry = true
+cache_dir = './.cache'
+requirements = []
+[contracts.adder]
+path = 'contracts/adder.clar'
+clarity_version = 2
+epoch = 2.4
+
+[contracts.adder_mad]
+path = 'tests/adder_mad.clar'
+clarity_version = 2
+epoch = 2.4
+[repl.analysis]
+passes = ['check_checker']
+
+[repl.analysis.check_checker]
+strict = false
+trusted_sender = false
+trusted_caller = false
+callee_filter = false
