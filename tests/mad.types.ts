@@ -25,7 +25,7 @@ export type ArbitraryType =
   | ((maxLength: number) => ReturnType<typeof fc.asciiString>)
   | ((maxLength: number) => ReturnType<typeof fc.string>);
 
-export type BaseTypesReflexion = {
+export type BaseTypesReflexionFC = {
   int128: ReturnType<typeof fc.integer>;
   uint128: ReturnType<typeof fc.nat>;
   bool: ReturnType<typeof fc.boolean>;

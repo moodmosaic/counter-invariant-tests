@@ -2,10 +2,10 @@ import { initSimnet, Simnet } from "@hirosystems/clarinet-sdk";
 import { ClarityValue, cvToJSON, uintCV } from "@stacks/transactions";
 import fc from "fast-check";
 import { it } from "vitest";
-import { BaseType, BaseTypesReflexion, ContractFunction } from "./mad.types";
+import { BaseType, BaseTypesReflexionFC, ContractFunction } from "./mad.types";
 const simnet = await initSimnet();
 
-const baseTypesReflexion: BaseTypesReflexion = {
+const baseTypesReflexionFC: BaseTypesReflexionFC = {
   "int128": fc.integer(),
   "uint128": fc.nat(),
   "bool": fc.boolean(),
@@ -107,7 +107,7 @@ it("run invariant testing", () => {
   // Helper function to generate arguments based on the function argument types
   const generateArguments = (fn: ContractFunction) => {
     return fn.args.map((arg) => {
-      const arb = baseTypesReflexion[arg.type as BaseType];
+      const arb = baseTypesReflexionFC[arg.type as BaseType];
       if (typeof arb === "function") {
         return arb(arg.maxLength); // Provide maxLength or addresses if needed
       }
