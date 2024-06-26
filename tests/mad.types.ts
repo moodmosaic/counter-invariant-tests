@@ -1,3 +1,12 @@
+import {
+  boolCV,
+  bufferCV,
+  intCV,
+  principalCV,
+  stringAsciiCV,
+  stringUtf8CV,
+  uintCV,
+} from "@stacks/transactions";
 import fc from "fast-check";
 
 export interface ContractFunction {
@@ -33,4 +42,14 @@ export type BaseTypesReflexionFC = {
   buffer: ReturnType<typeof fc.string>;
   "string-ascii": (maxLength: number) => ReturnType<typeof fc.asciiString>;
   "string-utf8": (maxLength: number) => ReturnType<typeof fc.string>;
+};
+
+export type BaseTypesReflexionCV = {
+  int128: (arg: number) => ReturnType<typeof intCV>;
+  uint128: (arg: number) => ReturnType<typeof uintCV>;
+  bool: (arg: boolean) => ReturnType<typeof boolCV>;
+  principal: (arg: string) => ReturnType<typeof principalCV>;
+  buffer: (arg: Uint8Array) => ReturnType<typeof bufferCV>;
+  "string-ascii": (arg: string) => ReturnType<typeof stringAsciiCV>;
+  "string-utf8": (arg: string) => ReturnType<typeof stringUtf8CV>;
 };

@@ -1,8 +1,23 @@
 import { initSimnet, Simnet } from "@hirosystems/clarinet-sdk";
-import { ClarityValue, cvToJSON, uintCV } from "@stacks/transactions";
+import {
+  boolCV,
+  bufferCV,
+  ClarityValue,
+  cvToJSON,
+  intCV,
+  principalCV,
+  stringAsciiCV,
+  stringUtf8CV,
+  uintCV,
+} from "@stacks/transactions";
 import fc from "fast-check";
 import { it } from "vitest";
-import { BaseType, BaseTypesReflexionFC, ContractFunction } from "./mad.types";
+import {
+  BaseType,
+  BaseTypesReflexionCV,
+  BaseTypesReflexionFC,
+  ContractFunction,
+} from "./mad.types";
 const simnet = await initSimnet();
 
 const baseTypesReflexionFC: BaseTypesReflexionFC = {
@@ -13,6 +28,16 @@ const baseTypesReflexionFC: BaseTypesReflexionFC = {
   "buffer": fc.string(),
   "string-ascii": (maxLength: number) => fc.asciiString({ maxLength }),
   "string-utf8": (maxLength: number) => fc.string({ maxLength }),
+};
+
+const baseTypesReflexionCV: BaseTypesReflexionCV = {
+  "int128": (arg: number) => intCV(arg),
+  "uint128": (arg: number) => uintCV(arg),
+  "bool": (arg: boolean) => boolCV(arg),
+  "principal": (arg: string) => principalCV(arg),
+  "buffer": (arg: Uint8Array) => bufferCV(arg),
+  "string-ascii": (arg: string) => stringAsciiCV(arg),
+  "string-utf8": (arg: string) => stringUtf8CV(arg),
 };
 
 // TODO: complex types
