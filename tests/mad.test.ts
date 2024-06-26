@@ -1,49 +1,15 @@
 import { initSimnet, Simnet } from "@hirosystems/clarinet-sdk";
 import { ClarityValue, cvToJSON, uintCV } from "@stacks/transactions";
 import fc from "fast-check";
-import { expect, it } from "vitest";
+import { it } from "vitest";
+import { BaseType, BaseTypesReflexion, ContractFunction } from "./mad.types";
 const simnet = await initSimnet();
-
-interface ContractFunction {
-  name: string;
-  access: "public" | "private" | "read_only";
-  args: any[];
-  outputs: object;
-}
-
-type BaseType =
-  | "int128"
-  | "uint128"
-  | "bool"
-  | "principal"
-  | "buffer"
-  | "string-ascii"
-  | "string-utf8";
-
-type ArbitraryType =
-  | ReturnType<typeof fc.integer>
-  | ReturnType<typeof fc.nat>
-  | ReturnType<typeof fc.boolean>
-  | ((addresses: any[]) => ReturnType<typeof fc.constantFrom>)
-  | ReturnType<typeof fc.string>
-  | ((maxLength: number) => ReturnType<typeof fc.asciiString>)
-  | ((maxLength: number) => ReturnType<typeof fc.string>);
-
-type BaseTypesReflexion = {
-  int128: ReturnType<typeof fc.integer>;
-  uint128: ReturnType<typeof fc.nat>;
-  bool: ReturnType<typeof fc.boolean>;
-  principal: (addresses: any[]) => ReturnType<typeof fc.constantFrom>;
-  buffer: ReturnType<typeof fc.string>;
-  "string-ascii": (maxLength: number) => ReturnType<typeof fc.asciiString>;
-  "string-utf8": (maxLength: number) => ReturnType<typeof fc.string>;
-};
 
 const baseTypesReflexion: BaseTypesReflexion = {
   "int128": fc.integer(),
   "uint128": fc.nat(),
   "bool": fc.boolean(),
-  "principal": (addresses: any[]) => fc.constantFrom(addresses),
+  "principal": (addresses: string[]) => fc.constantFrom(addresses),
   "buffer": fc.string(),
   "string-ascii": (maxLength: number) => fc.asciiString({ maxLength }),
   "string-utf8": (maxLength: number) => fc.string({ maxLength }),
