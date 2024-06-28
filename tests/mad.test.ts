@@ -2,7 +2,6 @@ import { initSimnet, Simnet } from "@hirosystems/clarinet-sdk";
 import {
   boolCV,
   bufferCV,
-  ClarityValue,
   cvToJSON,
   intCV,
   principalCV,
@@ -114,6 +113,15 @@ const getContractInvariants = (
   return invariants;
 };
 
+const argsToCV = (fn: ContractFunction, args: any[]) => {
+  const cvArgs: any[] = fn.args.map((arg, i) => {
+    // @ts-ignore
+    return baseTypesReflexionCV[arg.type as BaseType](args[i]);
+  });
+
+  return cvArgs;
+};
+
 const sutContracts: string[] = [
   "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.adder_mad",
 ];
@@ -152,12 +160,7 @@ it("run invariant testing", () => {
     const argsArb = fc.tuple(...generateArguments(fn));
     return fc.assert(
       fc.property(argsArb, (args) => {
-        let functionArgs: ClarityValue[] = [];
-
-        if (args.length > 0) {
-          // TODO: Abstractized handling of ClarityValues
-          functionArgs.push(uintCV(args[0]));
-        }
+        const functionArgs = argsToCV(fn, args);
 
         // Call the chosen function with the generated arguments
         simnet.callPublicFn(
@@ -167,8 +170,11 @@ it("run invariant testing", () => {
           functionArgs,
           "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
         );
-
-        console.log(`${fn.name} `, args);
+        let printedArgs: string = "";
+        args.forEach((arg) => {
+          printedArgs += `${arg} `;
+        });
+        console.log(fn.name, printedArgs);
 
         // Call and check all invariants after each function call
         allInvariants.forEach((invariant) => {

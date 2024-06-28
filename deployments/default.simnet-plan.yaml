@@ -39,6 +39,7 @@ genesis:
     - pox
     - pox-2
     - pox-3
+    - pox-4
     - lockup
     - costs-2
     - costs-3
@@ -56,6 +57,6 @@ plan:
         - emulated-contract-publish:
             contract-name: adder_mad
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: fuzz/adder_mad.clar
+            path: tests/adder_mad.clar
             clarity-version: 2
       epoch: "2.4"
