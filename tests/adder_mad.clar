@@ -24,26 +24,16 @@
 )
 
 ;; Mad Invariants / Properties
-(define-read-only (prop-counter-non-negative)
+(define-read-only (mad-counter-non-negative)
   (>= (var-get counter) u0)
 )
 
-(define-read-only (prop-no-overflow)
+(define-read-only (mad-no-overflow)
   ;; Assuming Clarity's uint is properly bounded, this should always be true.
   (<= (var-get counter) u10000000000000000000000)
 )
 
-(define-read-only (prop-counter-not-reset-unexpectedly)
+(define-read-only (mad-counter-not-reset-unexpectedly)
   ;; Ensure counter is not unexpectedly reset to 0 when incrementing.
   (not (is-eq (var-get counter) u0))
-)
-
-;; Mad Entry Point
-(define-public (mad)
-    (begin 
-        (asserts! (prop-counter-non-negative) (err u100))
-        (asserts! (prop-no-overflow) (err u101))
-        (asserts! (prop-counter-not-reset-unexpectedly) (err u102))
-        (ok true)
-    )
 )
