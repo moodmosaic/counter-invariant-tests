@@ -5,6 +5,8 @@ import { ContractFunction } from "./mad.types";
 import { generateArbitrariesForFunction } from "./fcConvertors";
 import { argsToCV } from "./cvConvertors";
 import { cvToJSON } from "@stacks/transactions";
+// TODO: Import this for battle testing the fast-check and Clarity Values convertors.
+// import { complexFn } from "./convertorTestCases";
 
 const simnet = await initSimnet();
 
@@ -129,32 +131,32 @@ it("run invariant testing", () => {
       );
     })
   );
+
+  // // TODO: Use this for battle testing the fast-check and Clarity Values convertors.
+  // // New test cases can be added to the convertorTestCases.ts file and imported here.
+
+  // // Functionality checker used to test the convertors
+  // fc.assert(
+  //   fc.property(fc.constantFrom(...[complexFn]), (fn) => {
+  //     // Generate random arguments for the chosen function
+  //     const argsArb = fc.tuple(
+  //       ...generateArbitrariesForFunction(fn, networkAddresses)
+  //     );
+  //     return fc.assert(
+  //       fc.property(argsArb, (args) => {
+  //         console.log("fc generated arguments:\n", args);
+  //         console.log(
+  //           "--------------------------------------------------\nClarity Arguments:"
+  //         );
+  //         const functionArgs = argsToCV(fn, args);
+  //         functionArgs.forEach((arg) => {
+  //           console.log(JSON.stringify(cvToJSON(arg), null, 1));
+  //         });
+  //         console.log("--------------------------------------------------");
+  //         // console.log("functionArgs:::", JSON.stringify(functionArgs, null, 2));
+  //       }),
+  //       { verbose: true, numRuns: 100, endOnFailure: true }
+  //     );
+  //   })
+  // );
 });
-
-// TODO: Use this for battle testing the fast-check and Clarity Values convertors.
-// New test cases can be added to the convertorTestCases.ts file and imported here.
-
-// import { complexFn } from "./convertorTestCases";
-
-// Functionality checker used to test the convertors
-// fc.assert(
-//   fc.property(fc.constantFrom(...[complexFn]), (fn) => {
-//     // Generate random arguments for the chosen function
-//     const argsArb = fc.tuple(...generateArbitrariesForFunction(fn));
-//     return fc.assert(
-//       fc.property(argsArb, (args) => {
-//         console.log("fc generated arguments:\n", args);
-//         console.log(
-//           "--------------------------------------------------\nClarity Arguments:"
-//         );
-//         const functionArgs = argsToCV(fn, args);
-//         functionArgs.forEach((arg) => {
-//           console.log(JSON.stringify(cvToJSON(arg), null, 1));
-//         });
-//         console.log("--------------------------------------------------");
-//         // console.log("functionArgs:::", JSON.stringify(functionArgs, null, 2));
-//       }),
-//       { verbose: true, numRuns: 100, endOnFailure: true }
-//     );
-//   })
-// );
