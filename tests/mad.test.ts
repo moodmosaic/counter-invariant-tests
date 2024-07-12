@@ -1,10 +1,12 @@
 import { initSimnet, Simnet } from "@hirosystems/clarinet-sdk";
-import fc from "fast-check";
 import { it } from "vitest";
 import { ContractFunction } from "./mad.types";
 import { generateArbitrariesForFunction } from "./fcConvertors";
 import { argsToCV } from "./cvConvertors";
 import { cvToJSON } from "@stacks/transactions";
+import { concatAndDeployContract } from "./concatHelpers";
+import fc from "fast-check";
+
 // TODO: Import this for battle testing the fast-check and Clarity Values convertors.
 // import { complexFn } from "./convertorTestCases";
 
@@ -65,14 +67,23 @@ const getContractInvariants = (
 };
 
 const sutContracts: string[] = [
-  "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.adder_mad",
+  "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.adder",
 ];
 
 it("run invariant testing", () => {
-  const allSCFunctions = getContractFunctions(simnet, sutContracts);
-  const sutFunctions = getSUTFunctions(sutContracts, allSCFunctions);
+  const concatContracts = sutContracts.map((c: string) =>
+    concatAndDeployContract(
+      simnet,
+      c,
+      "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
+      simnet.getAccounts().get("deployer")!
+    )
+  );
+
+  const allSCFunctions = getContractFunctions(simnet, concatContracts);
+  const sutFunctions = getSUTFunctions(concatContracts, allSCFunctions);
   const availableInvariants = getContractInvariants(
-    sutContracts,
+    concatContracts,
     allSCFunctions
   );
 
@@ -87,7 +98,6 @@ it("run invariant testing", () => {
   const networkAddresses: string[] = Array.from(simnet.getAccounts().values());
 
   fc.assert(
-    // fc.property(fc.constantFrom(...allFunctions), (fn) => {
     fc.property(fc.constantFrom(...allFunctions), (fn) => {
       // Generate random arguments for the chosen function
       const argsArb = fc.tuple(
@@ -96,10 +106,11 @@ it("run invariant testing", () => {
       return fc.assert(
         fc.property(argsArb, (args) => {
           const functionArgs = argsToCV(fn, args);
+
           // Call the chosen function with the generated arguments
           simnet.callPublicFn(
-            // We know that we have only one contract
-            sutContracts[0],
+            // FIXME: For the moment we know that we have only one contract. To be abstracted.
+            concatContracts[0],
             fn.name,
             functionArgs,
             "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM"
@@ -109,11 +120,12 @@ it("run invariant testing", () => {
             printedArgs += `${arg} `;
           });
           console.log(fn.name, printedArgs);
+
           // Call and check all invariants after each function call
           allInvariants.forEach((invariant) => {
             const { result: testInvariant } = simnet.callReadOnlyFn(
-              // We know that we have only one contract
-              sutContracts[0],
+              // FIXME: For the moment we know that we have only one contract. To be abstracted.
+              concatContracts[0],
               invariant.name,
               [],
               "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM"
