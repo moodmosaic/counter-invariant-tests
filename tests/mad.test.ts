@@ -81,11 +81,16 @@ it("run invariant testing", () => {
     availableInvariants.values()
   ).flat();
 
+  // Retrieve all the addresses from the simnet
+  const networkAddresses: string[] = Array.from(simnet.getAccounts().values());
+
   fc.assert(
     // fc.property(fc.constantFrom(...allFunctions), (fn) => {
     fc.property(fc.constantFrom(...allFunctions), (fn) => {
       // Generate random arguments for the chosen function
-      const argsArb = fc.tuple(...generateArbitrariesForFunction(fn));
+      const argsArb = fc.tuple(
+        ...generateArbitrariesForFunction(fn, networkAddresses)
+      );
       return fc.assert(
         fc.property(argsArb, (args) => {
           const functionArgs = argsToCV(fn, args);

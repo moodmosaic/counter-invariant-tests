@@ -8,10 +8,11 @@ import { ComplexTypesToFcType, BaseTypesToFcType } from "./mad.types";
  * @returns Array of fast-check arbitraries
  */
 export const generateArbitrariesForFunction = (
-  fn: ContractFunction
+  fn: ContractFunction,
+  addresses: string[]
 ): fc.Arbitrary<any>[] => {
   return fn.args.map((arg) => {
-    return generateArbitrary(arg.type as ArgType);
+    return generateArbitrary(arg.type as ArgType, addresses);
   });
 };
 
@@ -20,10 +21,19 @@ export const generateArbitrariesForFunction = (
  * @param type
  * @returns fast-check arbitrary
  */
-const generateArbitrary = (type: ArgType): fc.Arbitrary<any> => {
+const generateArbitrary = (
+  type: ArgType,
+  addresses: string[]
+): fc.Arbitrary<any> => {
   if (typeof type === "string") {
     // The type is a base type
-    return baseTypesToFC[type];
+    if (type === "principal") {
+      if (addresses.length === 0)
+        throw new Error(
+          "No addresses could be retrieved from the simnet instance!"
+        );
+      return baseTypesToFC.principal(addresses);
+    } else return baseTypesToFC[type];
   } else {
     // The type is a complex type
     if ("buffer" in type) {
@@ -33,13 +43,21 @@ const generateArbitrary = (type: ArgType): fc.Arbitrary<any> => {
     } else if ("string-utf8" in type) {
       return complexTypesToFC["string-utf8"](type["string-utf8"].length);
     } else if ("list" in type) {
-      return complexTypesToFC["list"](type.list.type, type.list.length);
+      return complexTypesToFC["list"](
+        type.list.type,
+        type.list.length,
+        addresses
+      );
     } else if ("tuple" in type) {
-      return complexTypesToFC["tuple"](type.tuple);
+      return complexTypesToFC["tuple"](type.tuple, addresses);
     } else if ("optional" in type) {
-      return complexTypesToFC["optional"](type.optional);
+      return complexTypesToFC["optional"](type.optional, addresses);
     } else if ("response" in type) {
-      return complexTypesToFC.response(type.response.ok, type.response.error);
+      return complexTypesToFC.response(
+        type.response.ok,
+        type.response.error,
+        addresses
+      );
     } else {
       throw new Error(`Unsupported complex type: ${JSON.stringify(type)}`);
     }
@@ -53,7 +71,7 @@ const baseTypesToFC: BaseTypesToFcType = {
   int128: fc.integer(),
   uint128: fc.nat(),
   bool: fc.boolean(),
-  // principal: (addresses: string[]) => fc.constantFrom(addresses),
+  principal: (addresses: string[]) => fc.constantFrom(...addresses),
 };
 
 /**
@@ -63,25 +81,26 @@ const complexTypesToFC: ComplexTypesToFcType = {
   buffer: (length: number) => fc.hexaString({ maxLength: length }),
   "string-ascii": (length: number) => fc.asciiString({ maxLength: length }),
   "string-utf8": (length: number) => fc.string({ maxLength: length }),
-  list: (type: ArgType, length: number) =>
-    fc.array(generateArbitrary(type), { maxLength: length }),
-  tuple: (items: { name: string; type: ArgType }[]) => {
+  list: (type: ArgType, length: number, addresses: string[]) =>
+    fc.array(generateArbitrary(type, addresses), { maxLength: length }),
+  tuple: (items: { name: string; type: ArgType }[], addresses: string[]) => {
     const tupleArbitraries: { [key: string]: fc.Arbitrary<any> } = {};
     items.forEach((item) => {
-      tupleArbitraries[item.name] = generateArbitrary(item.type);
+      tupleArbitraries[item.name] = generateArbitrary(item.type, addresses);
     });
     return fc.record(tupleArbitraries);
   },
-  optional: (type: ArgType) => fc.option(generateArbitrary(type)),
-  response: (okType: ArgType, errType: ArgType) =>
+  optional: (type: ArgType, addresses: string[]) =>
+    fc.option(generateArbitrary(type, addresses)),
+  response: (okType: ArgType, errType: ArgType, addresses: string[]) =>
     fc.oneof(
       fc.record({
         status: fc.constant("ok"),
-        value: generateArbitrary(okType),
+        value: generateArbitrary(okType, addresses),
       }),
       fc.record({
         status: fc.constant("error"),
-        value: generateArbitrary(errType),
+        value: generateArbitrary(errType, addresses),
       })
     ),
 };

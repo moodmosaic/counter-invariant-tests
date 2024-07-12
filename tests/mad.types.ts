@@ -52,17 +52,28 @@ export type BaseTypesToFcType = {
   int128: ReturnType<typeof fc.integer>;
   uint128: ReturnType<typeof fc.nat>;
   bool: ReturnType<typeof fc.boolean>;
-  // principal: (addresses: any[]) => ReturnType<typeof fc.constantFrom>;
+  principal: (addresses: string[]) => ReturnType<typeof fc.constantFrom>;
 };
 
 export type ComplexTypesToFcType = {
   buffer: (length: number) => fc.Arbitrary<string>;
   "string-ascii": (length: number) => fc.Arbitrary<string>;
   "string-utf8": (length: number) => fc.Arbitrary<string>;
-  list: (type: ArgType, length: number) => fc.Arbitrary<any[]>;
-  tuple: (items: { name: string; type: ArgType }[]) => fc.Arbitrary<object>;
-  optional: (type: ArgType) => fc.Arbitrary<any>;
-  response: (okType: ArgType, errType: ArgType) => fc.Arbitrary<any>;
+  list: (
+    type: ArgType,
+    length: number,
+    addresses: string[]
+  ) => fc.Arbitrary<any[]>;
+  tuple: (
+    items: { name: string; type: ArgType }[],
+    addresses: string[]
+  ) => fc.Arbitrary<object>;
+  optional: (type: ArgType, addresses: string[]) => fc.Arbitrary<any>;
+  response: (
+    okType: ArgType,
+    errType: ArgType,
+    addresses: string[]
+  ) => fc.Arbitrary<any>;
 };
 
 export type BaseTypesToCvType = {
