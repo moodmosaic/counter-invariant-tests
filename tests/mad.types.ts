@@ -27,6 +27,7 @@ export type TupleData<T extends ClarityValue = ClarityValue> = {
 };
 
 export type BaseType = "int128" | "uint128" | "bool" | "principal";
+const baseTypes: BaseType[] = ["int128", "uint128", "bool", "principal"];
 
 export type ComplexType =
   | { buffer: { length: number } }
@@ -38,6 +39,15 @@ export type ComplexType =
   | { response: { ok: ArgType; error: ArgType } };
 
 export type ArgType = BaseType | ComplexType;
+
+/**
+ * Verify if the type is a base type.
+ * @param type - The type to check
+ * @returns
+ */
+export const isBaseType = (type: ArgType): type is BaseType => {
+  return baseTypes.includes(type as BaseType);
+};
 
 export type ArbitraryType =
   | ReturnType<typeof fc.integer>

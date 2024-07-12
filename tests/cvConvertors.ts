@@ -18,6 +18,7 @@ import {
   BaseTypesToCvType,
   ComplexTypesToCvType,
   ContractFunction,
+  isBaseType,
   TupleData,
 } from "./mad.types";
 
@@ -38,10 +39,20 @@ export const argsToCV = (fn: ContractFunction, args: any[]) => {
  * @returns Clarity value
  */
 const argToCV = (arg: any, type: ArgType): ClarityValue => {
-  if (typeof type === "string") {
+  if (isBaseType(type)) {
     // Base type
-    // @ts-ignore
-    return baseTypesToCV[type as BaseType](arg);
+    switch (type) {
+      case "int128":
+        return baseTypesToCV.int128(arg as number);
+      case "uint128":
+        return baseTypesToCV.uint128(arg as number);
+      case "bool":
+        return baseTypesToCV.bool(arg as boolean);
+      case "principal":
+        return baseTypesToCV.principal(arg as string);
+      default:
+        throw new Error(`Unsupported base type: ${type}`);
+    }
   } else {
     // Complex type
     if ("buffer" in type) {
