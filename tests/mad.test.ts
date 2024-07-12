@@ -89,7 +89,6 @@ it("run invariant testing", () => {
       return fc.assert(
         fc.property(argsArb, (args) => {
           const functionArgs = argsToCV(fn, args);
-          console.log(allFunctions[0].args);
           // Call the chosen function with the generated arguments
           simnet.callPublicFn(
             // We know that we have only one contract
