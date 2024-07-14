@@ -1,12 +1,18 @@
 import { initSimnet, Simnet } from "@hirosystems/clarinet-sdk";
 import fc from "fast-check";
-import { it } from "vitest";
+import { beforeAll, afterAll, it, describe } from "vitest";
 import { ContractFunction } from "./mad.types";
 import { generateArbitrariesForFunction } from "./fcConvertors";
 import { argsToCV } from "./cvConvertors";
 import { cvToJSON } from "@stacks/transactions";
 
-const simnet = await initSimnet();
+import fs from "fs";
+import path from "path";
+
+const sutPath = path.resolve(__dirname, "../contracts/adder.clar");
+const madPath = path.resolve(__dirname, "../tests/adder_mad.clar");
+const sutClar = fs.readFileSync(sutPath, "utf8");
+const madClar = fs.readFileSync(madPath, "utf8");
 
 const getContractFunctions = (
   network: Simnet,
@@ -66,91 +72,75 @@ const sutContracts: string[] = [
   "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.adder_mad",
 ];
 
-it("run invariant testing", () => {
-  const allSCFunctions = getContractFunctions(simnet, sutContracts);
-  const sutFunctions = getSUTFunctions(sutContracts, allSCFunctions);
-  const availableInvariants = getContractInvariants(
-    sutContracts,
-    allSCFunctions
-  );
+describe("mad contract tests", () => {
+  let simnet;
+  beforeAll(async () => {
+    fs.writeFileSync(madPath, `${sutClar}\n${madClar}`);
+    simnet = await initSimnet();
+  });
 
-  const allFunctions: ContractFunction[] = Array.from(
-    sutFunctions.values()
-  ).flat();
-  const allInvariants: ContractFunction[] = Array.from(
-    availableInvariants.values()
-  ).flat();
+  afterAll(async () => {
+    fs.writeFileSync(madPath, `${madClar}`);
+  });
 
-  fc.assert(
-    // fc.property(fc.constantFrom(...allFunctions), (fn) => {
-    fc.property(fc.constantFrom(...allFunctions), (fn) => {
-      // Generate random arguments for the chosen function
-      const argsArb = fc.tuple(...generateArbitrariesForFunction(fn));
-      return fc.assert(
-        fc.property(argsArb, (args) => {
-          const functionArgs = argsToCV(fn, args);
-          console.log(allFunctions[0].args);
-          // Call the chosen function with the generated arguments
-          simnet.callPublicFn(
-            // We know that we have only one contract
-            sutContracts[0],
-            fn.name,
-            functionArgs,
-            "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM"
-          );
-          let printedArgs: string = "";
-          args.forEach((arg) => {
-            printedArgs += `${arg} `;
-          });
-          console.log(fn.name, printedArgs);
-          // Call and check all invariants after each function call
-          allInvariants.forEach((invariant) => {
-            const { result: testInvariant } = simnet.callReadOnlyFn(
+  it("run invariant testing", () => {
+    const allSCFunctions = getContractFunctions(simnet, sutContracts);
+    const sutFunctions = getSUTFunctions(sutContracts, allSCFunctions);
+    const availableInvariants = getContractInvariants(
+      sutContracts,
+      allSCFunctions
+    );
+
+    const allFunctions: ContractFunction[] = Array.from(
+      sutFunctions.values()
+    ).flat();
+    const allInvariants: ContractFunction[] = Array.from(
+      availableInvariants.values()
+    ).flat();
+
+    fc.assert(
+      // fc.property(fc.constantFrom(...allFunctions), (fn) => {
+      fc.property(fc.constantFrom(...allFunctions), (fn) => {
+        // Generate random arguments for the chosen function
+        const argsArb = fc.tuple(...generateArbitrariesForFunction(fn));
+        return fc.assert(
+          fc.property(argsArb, (args) => {
+            const functionArgs = argsToCV(fn, args);
+            console.log(allFunctions[0].args);
+            // Call the chosen function with the generated arguments
+            simnet.callPublicFn(
               // We know that we have only one contract
               sutContracts[0],
-              invariant.name,
-              [],
+              fn.name,
+              functionArgs,
               "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM"
             );
-            const jsonResult = cvToJSON(testInvariant);
-            // @ts-ignore
-            if (!jsonResult.value) {
-              throw new Error(
-                `Invariant failed: "${invariant.name}" returned ${jsonResult.value}`
+            let printedArgs: string = "";
+            args.forEach((arg) => {
+              printedArgs += `${arg} `;
+            });
+            console.log(fn.name, printedArgs);
+            // Call and check all invariants after each function call
+            allInvariants.forEach((invariant) => {
+              const { result: testInvariant } = simnet.callReadOnlyFn(
+                // We know that we have only one contract
+                sutContracts[0],
+                invariant.name,
+                [],
+                "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM"
               );
-            }
-          });
-        }),
-        { verbose: true, numRuns: 100 }
-      );
-    })
-  );
+              const jsonResult = cvToJSON(testInvariant);
+              // @ts-ignore
+              if (!jsonResult.value) {
+                throw new Error(
+                  `Invariant failed: "${invariant.name}" returned ${jsonResult.value}`
+                );
+              }
+            });
+          }),
+          { verbose: true, numRuns: 100 }
+        );
+      })
+    );
+  });
 });
-
-// TODO: Use this for battle testing the fast-check and Clarity Values convertors.
-// New test cases can be added to the convertorTestCases.ts file and imported here.
-
-// import { complexFn } from "./convertorTestCases";
-
-// Functionality checker used to test the convertors
-// fc.assert(
-//   fc.property(fc.constantFrom(...[complexFn]), (fn) => {
-//     // Generate random arguments for the chosen function
-//     const argsArb = fc.tuple(...generateArbitrariesForFunction(fn));
-//     return fc.assert(
-//       fc.property(argsArb, (args) => {
-//         console.log("fc generated arguments:\n", args);
-//         console.log(
-//           "--------------------------------------------------\nClarity Arguments:"
-//         );
-//         const functionArgs = argsToCV(fn, args);
-//         functionArgs.forEach((arg) => {
-//           console.log(JSON.stringify(cvToJSON(arg), null, 1));
-//         });
-//         console.log("--------------------------------------------------");
-//         // console.log("functionArgs:::", JSON.stringify(functionArgs, null, 2));
-//       }),
-//       { verbose: true, numRuns: 100, endOnFailure: true }
-//     );
-//   })
-// );
