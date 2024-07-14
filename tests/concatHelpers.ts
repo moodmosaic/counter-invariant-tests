@@ -106,4 +106,4 @@ const invariantScNamingRule = (contractName: string): string =>
 const getScNameFromFullAddress = (contractAddressAndName: string): string =>
   contractAddressAndName.split(".")[1];
 
-const invariantPath = path.resolve(__dirname, "../contracts");
+const invariantPath = path.resolve("./tests");
