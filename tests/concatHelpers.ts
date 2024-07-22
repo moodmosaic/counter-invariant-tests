@@ -3,6 +3,20 @@ import fs from "fs";
 import path from "path";
 
 /**
+ * The context contract that will be concatenated with the SUT and the invariants contracts.
+ * It is a map that stores the number of times each SUT function is called.
+ */
+const contextContract = `(define-map context (string-ascii 100) {
+    called: uint
+    ;; other data
+})
+
+(define-public (update-context (function-name (string-ascii 100)) (called uint))
+    (ok (map-set context function-name {called: called})))
+
+(update-context "create-new-shipment" u0)`;
+
+/**
  * Concatenate the SUT and the invariants contracts, then deploy the concatenated contract.
  * @param network
  * @param sutContractName
@@ -26,10 +40,11 @@ export const concatAndDeployContract = (
     invariantScName
   );
 
-  // Concatenate the two contracts contents
+  // Concatenate the two contracts contents and the context contract
   const concatContractContent = concatContractSrcs(
     sutContract,
-    invariantsContract
+    invariantsContract,
+    contextContract
   );
 
   const concatContractName = `${getScNameFromFullAddress(
@@ -87,8 +102,12 @@ const getInvariantContractSrc = (contractName: string): string =>
  * @param invariantsContract
  * @returns Concatenated contract sources.
  */
-const concatContractSrcs = (sutContract, invariantsContract): string =>
-  sutContract + "\n\n" + invariantsContract;
+const concatContractSrcs = (
+  sutContract,
+  invariantsContract,
+  contextContract
+): string =>
+  sutContract + "\n\n" + invariantsContract + "\n\n" + contextContract;
 
 /**
  * Get the invariant contract name considering the naming rule for the invariants.

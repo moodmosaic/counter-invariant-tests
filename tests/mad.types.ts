@@ -105,3 +105,7 @@ export type ComplexTypesToCvType = {
     value: ClarityValue
   ) => ReturnType<typeof responseOkCV | typeof responseErrorCV>;
 };
+
+export type LocalContext = {
+  [key: string]: number;
+};

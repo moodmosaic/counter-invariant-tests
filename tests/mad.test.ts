@@ -1,9 +1,9 @@
 import { initSimnet, Simnet } from "@hirosystems/clarinet-sdk";
 import { it } from "vitest";
-import { ContractFunction } from "./mad.types";
+import { ContractFunction, LocalContext } from "./mad.types";
 import { generateArbitrariesForFunction } from "./fcConvertors";
 import { argsToCV } from "./cvConvertors";
-import { cvToJSON } from "@stacks/transactions";
+import { Cl, cvToJSON } from "@stacks/transactions";
 import { concatAndDeployContract } from "./concatHelpers";
 import fc from "fast-check";
 
@@ -44,7 +44,12 @@ const getSUTFunctions = (
       c,
       allPublicFunctions
         .get(c)
-        ?.filter((fn) => fn.access === "public" && !fn.name.includes("mad"))
+        ?.filter(
+          (fn) =>
+            fn.access === "public" &&
+            !fn.name.includes("mad") &&
+            fn.name !== "update-context"
+        )
     );
   });
 
@@ -71,13 +76,9 @@ const sutContracts: string[] = [
 ];
 
 it("run invariant testing", () => {
+  const deployerAddr = simnet.getAccounts().get("deployer")!;
   const concatContracts = sutContracts.map((c: string) =>
-    concatAndDeployContract(
-      simnet,
-      c,
-      "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM",
-      simnet.getAccounts().get("deployer")!
-    )
+    concatAndDeployContract(simnet, c, deployerAddr, deployerAddr)
   );
 
   const allSCFunctions = getContractFunctions(simnet, concatContracts);
@@ -97,6 +98,29 @@ it("run invariant testing", () => {
   // Retrieve all the addresses from the simnet
   const networkAddresses: string[] = Array.from(simnet.getAccounts().values());
 
+  // Initialize the local context
+  const localContext: LocalContext = {};
+
+  allFunctions.forEach((fn) => {
+    localContext[fn.name] = 0;
+  });
+
+  // Initialize the Clarity context
+  allFunctions.forEach((fn) => {
+    const { result: initialize } = simnet.callPublicFn(
+      concatContracts[0],
+      "update-context",
+      [Cl.stringAscii(fn.name), Cl.uint(0)],
+      deployerAddr
+    );
+    const jsonResult = cvToJSON(initialize);
+    if (!jsonResult.value || !jsonResult.success) {
+      throw new Error(
+        `Failed to initialize the context for function: ${fn.name}`
+      );
+    }
+  });
+
   fc.assert(
     fc.property(fc.constantFrom(...allFunctions), (fn) => {
       // Generate random arguments for the chosen function
@@ -108,18 +132,35 @@ it("run invariant testing", () => {
           const functionArgs = argsToCV(fn, args);
 
           // Call the chosen function with the generated arguments
-          simnet.callPublicFn(
+          const { result: sutCall } = simnet.callPublicFn(
             // FIXME: For the moment we know that we have only one contract. To be abstracted.
             concatContracts[0],
             fn.name,
             functionArgs,
-            "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM"
+            deployerAddr
           );
           let printedArgs: string = "";
+
           args.forEach((arg) => {
             printedArgs += `${arg} `;
           });
+          // Print the called function and its arguments
           console.log(fn.name, printedArgs);
+
+          const sutCallJson = cvToJSON(sutCall);
+
+          if (sutCallJson.success) {
+            // Update the local context for the called function
+            localContext[fn.name] += 1;
+
+            // Update the Clarity context for the called function
+            simnet.callPublicFn(
+              concatContracts[0],
+              "update-context",
+              [Cl.stringAscii(fn.name), Cl.uint(localContext[fn.name])],
+              deployerAddr
+            );
+          }
 
           // Call and check all invariants after each function call
           allInvariants.forEach((invariant) => {
@@ -128,7 +169,7 @@ it("run invariant testing", () => {
               concatContracts[0],
               invariant.name,
               [],
-              "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM"
+              deployerAddr
             );
             const jsonResult = cvToJSON(testInvariant);
             // @ts-ignore
