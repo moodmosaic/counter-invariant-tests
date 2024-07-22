@@ -27,6 +27,7 @@ export type TupleData<T extends ClarityValue = ClarityValue> = {
 };
 
 export type BaseType = "int128" | "uint128" | "bool" | "principal";
+const baseTypes: BaseType[] = ["int128", "uint128", "bool", "principal"];
 
 export type ComplexType =
   | { buffer: { length: number } }
@@ -38,6 +39,15 @@ export type ComplexType =
   | { response: { ok: ArgType; error: ArgType } };
 
 export type ArgType = BaseType | ComplexType;
+
+/**
+ * Verify if the type is a base type.
+ * @param type - The type to check
+ * @returns
+ */
+export const isBaseType = (type: ArgType): type is BaseType => {
+  return baseTypes.includes(type as BaseType);
+};
 
 export type ArbitraryType =
   | ReturnType<typeof fc.integer>
@@ -52,17 +62,28 @@ export type BaseTypesToFcType = {
   int128: ReturnType<typeof fc.integer>;
   uint128: ReturnType<typeof fc.nat>;
   bool: ReturnType<typeof fc.boolean>;
-  // principal: (addresses: any[]) => ReturnType<typeof fc.constantFrom>;
+  principal: (addresses: string[]) => ReturnType<typeof fc.constantFrom>;
 };
 
 export type ComplexTypesToFcType = {
   buffer: (length: number) => fc.Arbitrary<string>;
   "string-ascii": (length: number) => fc.Arbitrary<string>;
   "string-utf8": (length: number) => fc.Arbitrary<string>;
-  list: (type: ArgType, length: number) => fc.Arbitrary<any[]>;
-  tuple: (items: { name: string; type: ArgType }[]) => fc.Arbitrary<object>;
-  optional: (type: ArgType) => fc.Arbitrary<any>;
-  response: (okType: ArgType, errType: ArgType) => fc.Arbitrary<any>;
+  list: (
+    type: ArgType,
+    length: number,
+    addresses: string[]
+  ) => fc.Arbitrary<any[]>;
+  tuple: (
+    items: { name: string; type: ArgType }[],
+    addresses: string[]
+  ) => fc.Arbitrary<object>;
+  optional: (type: ArgType, addresses: string[]) => fc.Arbitrary<any>;
+  response: (
+    okType: ArgType,
+    errType: ArgType,
+    addresses: string[]
+  ) => fc.Arbitrary<any>;
 };
 
 export type BaseTypesToCvType = {
@@ -83,4 +104,8 @@ export type ComplexTypesToCvType = {
     status: "ok" | "error",
     value: ClarityValue
   ) => ReturnType<typeof responseOkCV | typeof responseErrorCV>;
+};
+
+export type LocalContext = {
+  [key: string]: number;
 };
