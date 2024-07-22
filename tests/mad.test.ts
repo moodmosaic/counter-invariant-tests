@@ -72,7 +72,8 @@ const getContractInvariants = (
 };
 
 const sutContracts: string[] = [
-  "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.adder",
+  // "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.adder",
+  "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.cargo",
 ];
 
 it("run invariant testing", () => {
