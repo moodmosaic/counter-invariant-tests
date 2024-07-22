@@ -12,9 +12,7 @@ const contextContract = `(define-map context (string-ascii 100) {
 })
 
 (define-public (update-context (function-name (string-ascii 100)) (called uint))
-    (ok (map-set context function-name {called: called})))
-
-(update-context "create-new-shipment" u0)`;
+    (ok (map-set context function-name {called: called})))`;
 
 /**
  * Concatenate the SUT and the invariants contracts, then deploy the concatenated contract.
