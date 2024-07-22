@@ -3,6 +3,10 @@ import { ArgType, ContractFunction } from "./mad.types";
 
 import { ComplexTypesToFcType, BaseTypesToFcType } from "./mad.types";
 
+/** The character set used for generating ASCII strings.*/
+const charSet =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+
 /** For a given function, dynamically generate fast-check arbitraries.
  * @param fn ContractFunction
  * @returns Array of fast-check arbitraries
@@ -79,7 +83,11 @@ const baseTypesToFC: BaseTypesToFcType = {
  */
 const complexTypesToFC: ComplexTypesToFcType = {
   buffer: (length: number) => fc.hexaString({ maxLength: length }),
-  "string-ascii": (length: number) => fc.asciiString({ maxLength: length }),
+  "string-ascii": (length: number) =>
+    fc.stringOf(fc.constantFrom(...charSet), {
+      maxLength: length,
+      minLength: 1,
+    }),
   "string-utf8": (length: number) => fc.string({ maxLength: length }),
   list: (type: ArgType, length: number, addresses: string[]) =>
     fc.array(generateArbitrary(type, addresses), { maxLength: length }),
