@@ -1,17 +1,17 @@
 The bigger picture can be:
 
-;; Invariant properties (starting with `mad-` or `prop-`) are executed against a
+;; Invariant properties (starting with `rv-` or `prop-`) are executed against a
 ;; random state of the SUT and they're either parameterless or take parameters.
 ;; - If they take parameters we randomly generate a value for each one of those
 ;;   parameters.
 ;; - If they are parameterless, we execute as-is.
 
-(define-read-only (mad-foo-invariant-check (n uint))
+(define-read-only (rv-foo-invariant-check (n uint))
   (>= (var-get counter) n)
 )
 
 ;; NOTE: This is what currently works, and can be demoed.
-(define-read-only (mad-bar-invariant-check)
+(define-read-only (rv-bar-invariant-check)
   (>= (var-get counter) u0)
 )
 

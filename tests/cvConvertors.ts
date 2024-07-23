@@ -20,7 +20,7 @@ import {
   ContractFunction,
   isBaseType,
   TupleData,
-} from "./mad.types";
+} from "./rv.types";
 
 /**
  * Convert function arguments to Clarity values.

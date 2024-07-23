@@ -100,7 +100,7 @@ const getInvariantContractSrc = (contractName: string): string => {
   } catch (e) {
     throw new Error(
       `Error retrieving the corresponding invariant contract for ${contractName.replace(
-        "_mad",
+        "rv_",
         ""
       )}. ${e.message}`
     );
@@ -126,7 +126,7 @@ const concatContractSrcs = (
  * @returns Invariant contract name.
  */
 const invariantScNamingRule = (contractName: string): string =>
-  getScNameFromFullAddress(contractName) + "_mad";
+  "rv_" + getScNameFromFullAddress(contractName);
 
 /**
  * Get the contract name from the format "contractAddress.contractName".

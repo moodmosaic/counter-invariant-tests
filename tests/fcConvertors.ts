@@ -1,7 +1,7 @@
 import fc from "fast-check";
-import { ArgType, ContractFunction } from "./mad.types";
+import { ArgType, ContractFunction } from "./rv.types";
 
-import { ComplexTypesToFcType, BaseTypesToFcType } from "./mad.types";
+import { ComplexTypesToFcType, BaseTypesToFcType } from "./rv.types";
 
 /** The character set used for generating ASCII strings.*/
 const charSet =

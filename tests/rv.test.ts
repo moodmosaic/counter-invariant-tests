@@ -1,6 +1,6 @@
 import { initSimnet, Simnet } from "@hirosystems/clarinet-sdk";
 import { it } from "vitest";
-import { ContractFunction, LocalContext } from "./mad.types";
+import { ContractFunction, LocalContext } from "./rv.types";
 import { generateArbitrariesForFunction } from "./fcConvertors";
 import { argsToCV } from "./cvConvertors";
 import { Cl, cvToJSON } from "@stacks/transactions";
@@ -47,7 +47,7 @@ const getSUTFunctions = (
         ?.filter(
           (fn) =>
             fn.access === "public" &&
-            !fn.name.includes("mad") &&
+            !fn.name.startsWith("rv-") &&
             fn.name !== "update-context"
         )
     );
@@ -64,7 +64,9 @@ const getContractInvariants = (
   sutContracts.forEach((c) => {
     invariants.set(
       c,
-      sutContractsFunctions.get(c).filter((fn: any) => fn.name.includes("mad"))
+      sutContractsFunctions
+        .get(c)
+        .filter((fn: any) => fn.name.startsWith("rv-"))
     );
   });
 

@@ -1,4 +1,4 @@
-(define-read-only (mad-last-shipment-id-non-zero-after-create-shipment)
+(define-read-only (rv-last-shipment-id-non-zero-after-create-shipment)
     (let ((create-shipment-num-calls (default-to u0 (get called (map-get? context "create-new-shipment"))))) 
         (if (> create-shipment-num-calls u0)
             (> (var-get last-shipment-id) u0)
