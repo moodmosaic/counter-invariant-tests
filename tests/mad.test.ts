@@ -143,10 +143,20 @@ it("run invariant testing", () => {
           let printedArgs: string = "";
 
           args.forEach((arg) => {
-            printedArgs += `${arg} `;
+            let printedArg = ``;
+
+            if (typeof arg === "object") {
+              try {
+                printedArg = JSON.stringify(arg);
+              } catch (error) {
+                printedArg = "[Circular]";
+              }
+            } else {
+              printedArg = `${arg}`;
+            }
+
+            printedArgs += `${printedArg} `;
           });
-          // Print the called function and its arguments
-          console.log(fn.name, printedArgs);
 
           const sutCallJson = cvToJSON(sutCall);
 
@@ -161,6 +171,12 @@ it("run invariant testing", () => {
               [Cl.stringAscii(fn.name), Cl.uint(localContext[fn.name])],
               deployerAddr
             );
+
+            // Print the successfuly called function and its arguments
+            console.log("✓ " + fn.name, printedArgs);
+          } else {
+            // Print the failed function called and its arguments
+            console.log("✗ " + fn.name, printedArgs);
           }
 
           // Call and check all invariants after each function call
