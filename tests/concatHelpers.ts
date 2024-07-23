@@ -83,16 +83,29 @@ const getSutAndInvariantsContractsSrcs = (
  * @param contractName
  * @returns
  */
-const getContractSrc = (network: Simnet, contractName: string) =>
-  network.getContractSource(contractName);
+const getContractSrc = (network: Simnet, contractName: string) => {
+  if (network.getContractSource(contractName) === undefined)
+    throw new Error(`Contract ${contractName} not found in the network.`);
+  return network.getContractSource(contractName);
+};
 
 /**
  * Get the invariant contract source.
  * @param contractName
  * @returns Invariant contract source.
  */
-const getInvariantContractSrc = (contractName: string): string =>
-  fs.readFileSync(`${invariantPath}/${contractName}.clar`).toString();
+const getInvariantContractSrc = (contractName: string): string => {
+  try {
+    return fs.readFileSync(`${invariantPath}/${contractName}.clar`).toString();
+  } catch (e) {
+    throw new Error(
+      `Error retrieving the corresponding invariant contract for ${contractName.replace(
+        "_mad",
+        ""
+      )}. ${e.message}`
+    );
+  }
+};
 
 /**
  * Concatenate the SUT and the invariant contracts' sources.
